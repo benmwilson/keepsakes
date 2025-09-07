@@ -9,11 +9,6 @@
 
   <p align="center">
     A modern, interactive memory wall app for sharing photos, stories, and keepsakes at family events.
-    <br />
-    <br />
-    <strong>🚀 ACTIVELY MAINTAINED</strong><br />
-    Built with modern architecture, Docker deployment, and Postgres database for better performance and maintainability.
-    <br />
   </p>
 </p>
 
@@ -41,11 +36,9 @@
       <ul>
         <li><a href="#local-development">Local Development</a></li>
         <li><a href="#database-setup">Database Setup</a></li>
-        <li><a href="#migration-from-legacy">Migration from Legacy</a></li>
       </ul>
     </li>
     <li><a href="#license">License</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
 </details>
 
@@ -210,27 +203,6 @@ The application uses PostgreSQL with the following schema:
 
 See `init.sql` for the complete database schema.
 
-## Migration from Legacy
-
-This repository is a complete rewrite of the [legacy Firebase version](https://github.com/benmwilson/keepsakes-legacy). Key improvements include:
-
-- ✅ **Modern Architecture** - Clean, maintainable codebase
-- ✅ **PostgreSQL Database** - Robust, scalable data storage
-- ✅ **Docker Deployment** - Easy, consistent deployment
-- ✅ **Better Performance** - Optimized for speed and reliability
-- ✅ **Type Safety** - Full TypeScript implementation
-- ✅ **Modern UI** - Updated design with better UX
-
-### Migration Status
-
-- ✅ **Core Features Preserved** - Memory wall, carousel, upload functionality
-- ✅ **Firebase Removed** - All Firebase dependencies eliminated
-- ✅ **Postgres Ready** - Database schema and connection utilities created
-- 🔄 **In Progress** - Postgres integration in action files
-- 🔄 **In Progress** - Authentication system implementation
-- 🔄 **In Progress** - File upload handling
-
-See [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) for detailed migration notes.
 
 <!-- LICENSE -->
 
@@ -238,14 +210,6 @@ See [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) for detailed migration notes.
 
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
 
-<!-- ACKNOWLEDGMENTS -->
-
-# Acknowledgments
-
-- **Original Inspiration** - Built as a birthday gift for my dad 🎂
-- **Legacy Version** - [keepsakes-legacy](https://github.com/benmwilson/keepsakes-legacy) for the original concept
-- **Community** - Thanks to all the open-source projects that made this possible
-- **Family & Friends** - For testing and feedback on the original version
 
 ---
 
