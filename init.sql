@@ -53,6 +53,18 @@ CREATE TABLE IF NOT EXISTS guest_emails (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    level VARCHAR(10) NOT NULL CHECK (level IN ('info', 'warn', 'error', 'debug')),
+    category VARCHAR(20) NOT NULL CHECK (category IN ('upload', 'guest', 'admin', 'system')),
+    message TEXT NOT NULL,
+    data JSONB,
+    event_id UUID REFERENCES events(id) ON DELETE CASCADE,
+    event_slug VARCHAR(255),
+    user_agent TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_events_slug ON events(slug);
 CREATE INDEX IF NOT EXISTS idx_keepsakes_event_id ON keepsakes(event_id);
@@ -60,6 +72,9 @@ CREATE INDEX IF NOT EXISTS idx_keepsakes_type ON keepsakes(type);
 CREATE INDEX IF NOT EXISTS idx_keepsakes_created_at ON keepsakes(created_at);
 CREATE INDEX IF NOT EXISTS idx_guest_emails_event_id ON guest_emails(event_id);
 CREATE INDEX IF NOT EXISTS idx_guest_emails_email ON guest_emails(email);
+CREATE INDEX IF NOT EXISTS idx_logs_event_id ON logs(event_id);
+CREATE INDEX IF NOT EXISTS idx_logs_created_at ON logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_logs_category ON logs(category);
 
 -- Insert a default event for testing
 INSERT INTO events (slug, name, subtitle, hero_image_url, instructions, consent_required, paused)

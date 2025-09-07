@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-// TODO: Replace Firebase imports with Postgres database connection
-// import { query } from "@/lib/database";
 import Link from "next/link";
 import type { Keepsake, Event } from "@/lib/types";
-import { logger } from "@/lib/logger";
+import { clientLogger } from "@/lib/client-logger";
 import KeepsakeCard from "./memory-card";
+import { getKeepsakesByEventId } from "@/actions/gallery";
+import { skipNext, skipPrev, restartAutoplay } from "@/actions/events";
 import {
   Dialog,
   DialogContent,
@@ -49,7 +49,7 @@ export default function SimpleMemoryWall({ event: initialEvent }: { event: Seria
 
   // Log when user visits memory wall
   useEffect(() => {
-    logger.guestVisitedWall(event.slug, event.id, viewMode).catch(console.error);
+    clientLogger.guestVisitedWall(event.slug, event.id, viewMode).catch(console.error);
   }, [event.slug, event.id, viewMode]);
 
   // Handle escape key to exit fullscreen
@@ -177,72 +177,64 @@ export default function SimpleMemoryWall({ event: initialEvent }: { event: Seria
     };
   }, [showControls, isFullscreen, viewMode]);
 
-  // Effect for handling event document updates
+  // Effect for handling event updates and fetching keepsakes
   useEffect(() => {
     if (!initialEvent.id) return;
-    const eventRef = doc(db, "events", initialEvent.id);
-    const unsubscribeEvent = onSnapshot(eventRef, (docSnap) => {
-      if (!docSnap.exists()) return;
-      const eventData = docSnap.data() as Event;
-      setEvent({ ...eventData, createdAt: eventData.createdAt?.toDate?.()?.toISOString() || new Date().toISOString() });
-
-      // Handle skip controls
-      if (eventData.skipNext) {
-        setCurrentIndex((prev) => (prev + 1) % keepsakes.length);
-        // Clear the skip flag
-        updateDoc(eventRef, { skipNext: false });
+    
+    const fetchKeepsakes = async () => {
+      try {
+        const fetchedKeepsakes = await getKeepsakesByEventId(initialEvent.id);
+        setKeepsakes(fetchedKeepsakes);
+        
+        // Reset to first keepsake if current index is out of bounds
+        if (currentIndex >= fetchedKeepsakes.length) {
+          setCurrentIndex(0);
+        }
+      } catch (error) {
+        console.error("Error fetching keepsakes:", error);
       }
-      if (eventData.skipPrev) {
-        setCurrentIndex((prev) => (prev - 1 + keepsakes.length) % keepsakes.length);
-        // Clear the skip flag
-        updateDoc(eventRef, { skipPrev: false });
-      }
+    };
 
-      // Handle restart autoplay
-      if (eventData.restartAutoplay) {
-        setCurrentIndex(0);
-        setGalleryIndices(new Map());
-        // Clear the restart flag
-        updateDoc(eventRef, { restartAutoplay: null });
-      }
-    });
-    return () => unsubscribeEvent();
-  }, [initialEvent.id, keepsakes.length]);
-
-  // Effect for handling keepsakes collection updates
-  useEffect(() => {
-    if (!initialEvent.id) return;
-    const keepsakesQuery = query(
-      collection(db, "keepsakes"),
-      where("eventId", "==", initialEvent.id)
-    );
-    const unsubscribeKeepsakes = onSnapshot(keepsakesQuery, (querySnapshot) => {
-      const keepsakesData: Keepsake[] = [];
-      querySnapshot.forEach((doc) => {
-          const keepsake = { id: doc.id, ...doc.data() } as Keepsake;
-          // Filter out hidden keepsakes for the memory wall
-          if (!keepsake.hidden) {
-            keepsakesData.push(keepsake);
-          }
-      });
-      
-      keepsakesData.sort((a, b) => {
-        if (a.pinned && !b.pinned) return -1;
-        if (!a.pinned && b.pinned) return 1;
-        const dateA = a.createdAt?.toDate?.()?.getTime() || 0;
-        const dateB = b.createdAt?.toDate?.()?.getTime() || 0;
-        return dateB - dateA;
-      });
-
-      setKeepsakes(keepsakesData);
-      
-      // Reset to first keepsake if current index is out of bounds
-      if (currentIndex >= keepsakesData.length) {
-        setCurrentIndex(0);
-      }
-    });
-    return () => unsubscribeKeepsakes();
+    fetchKeepsakes();
+    
+    // Set up polling for real-time updates (every 5 seconds)
+    const interval = setInterval(fetchKeepsakes, 5000);
+    
+    return () => clearInterval(interval);
   }, [initialEvent.id, currentIndex]);
+
+  // Effect for handling skip controls and restart autoplay
+  useEffect(() => {
+    if (!initialEvent.id) return;
+
+    const handleSkipControls = async () => {
+      try {
+        // Check for skip controls in the event data
+        if (event.skipNext) {
+          setCurrentIndex((prev) => (prev + 1) % keepsakes.length);
+          // Clear the skip flag
+          await skipNext(initialEvent.id, event.slug);
+        }
+        if (event.skipPrev) {
+          setCurrentIndex((prev) => (prev - 1 + keepsakes.length) % keepsakes.length);
+          // Clear the skip flag
+          await skipPrev(initialEvent.id, event.slug);
+        }
+
+        // Handle restart autoplay
+        if (event.restartAutoplay) {
+          setCurrentIndex(0);
+          setGalleryIndices(new Map());
+          // Clear the restart flag
+          await restartAutoplay(initialEvent.id, event.slug);
+        }
+      } catch (error) {
+        console.error("Error handling skip controls:", error);
+      }
+    };
+
+    handleSkipControls();
+  }, [event.skipNext, event.skipPrev, event.restartAutoplay, initialEvent.id, event.slug, keepsakes.length]);
 
   // Simple autoplay logic
   useEffect(() => {

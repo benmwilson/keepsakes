@@ -1,17 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  collection,
-  query,
-  onSnapshot,
-  where,
-  doc,
-} from "firebase/firestore";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { db } from "@/lib/firebase";
+import { getEventById, getAllKeepsakesByEventId } from "@/actions/admin-data";
 import { Keepsake, Event, SerializableEvent } from "@/lib/types";
 import { Button } from "./ui/button";
 import {
@@ -147,50 +140,35 @@ export default function AdminDashboard({
   };
 
   useEffect(() => {
-    const keepsakesQuery = query(
-      collection(db, "keepsakes"),
-      where("eventId", "==", event.id)
-    );
-    const unsubscribeKeepsakes = onSnapshot(keepsakesQuery, (querySnapshot) => {
-      const keepsakesData: Keepsake[] = [];
-      querySnapshot.forEach((doc) => {
-        keepsakesData.push({ id: doc.id, ...doc.data() } as Keepsake);
-      });
-      
-      keepsakesData.sort((a, b) => {
-        if (a.pinned && !b.pinned) return -1;
-        if (!a.pinned && b.pinned) return 1;
-        const dateA = a.createdAt?.toDate?.()?.getTime() || 0;
-        const dateB = b.createdAt?.toDate?.()?.getTime() || 0;
-        return dateB - dateA;
-      });
+    const fetchData = async () => {
+      try {
+        // Fetch keepsakes
+        const keepsakesData = await getAllKeepsakesByEventId(event.id);
+        setKeepsakes(keepsakesData);
+        
+        // Reset to first page if current page is out of bounds
+        const newTotalPages = Math.ceil(keepsakesData.length / itemsPerPage);
+        if (currentPage > newTotalPages && newTotalPages > 0) {
+          setCurrentPage(1);
+        }
 
-      setKeepsakes(keepsakesData);
-      
-      // Reset to first page if current page is out of bounds
-      const newTotalPages = Math.ceil(keepsakesData.length / itemsPerPage);
-      if (currentPage > newTotalPages && newTotalPages > 0) {
-        setCurrentPage(1);
+        // Fetch event data
+        const eventData = await getEventById(event.id);
+        if (eventData) {
+          setEvent({
+            ...eventData,
+            id: eventData.id,
+            createdAt: eventData.createdAt?.toISOString() || null,
+            restartAutoplay: eventData.restartAutoplay?.toISOString() || null,
+          } as SerializableEvent);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
       }
-    });
-
-    const eventRef = doc(db, "events", event.id);
-    const unsubscribeEvent = onSnapshot(eventRef, (docSnap) => {
-      if (docSnap.exists()){
-        const eventData = { id: docSnap.id, ...docSnap.data() } as Event;
-        setEvent({
-          ...eventData,
-          createdAt: eventData.createdAt?.toDate?.()?.toISOString() || null,
-          restartAutoplay: eventData.restartAutoplay?.toDate?.()?.toISOString() || null,
-        } as SerializableEvent);
-      }
-    });
-
-    return () => {
-      unsubscribeKeepsakes();
-      unsubscribeEvent();
     };
-  }, [event.id]);
+
+    fetchData();
+  }, [event.id, currentPage, itemsPerPage]);
   
   const handleTogglePin = async (keepsakeId: string, pinned: boolean) => {
     const result = await togglePinKeepsake(event.slug, keepsakeId, pinned);

@@ -52,20 +52,11 @@ export async function checkAdminSession(eventId: string) {
 
 export async function checkAdminUsersExist(eventId: string) {
   try {
-    const { db } = await import("@/lib/firebase");
+    const { query } = await import("@/lib/database");
     
-    if (!db) {
-      console.warn("Firebase not initialized, cannot check admin users");
-      return { exists: false };
-    }
+    const result = await query('SELECT id FROM admin_users WHERE event_id = $1 LIMIT 1', [eventId]);
     
-    const { collection, query, where, getDocs } = await import("firebase/firestore");
-    
-    const adminUsersRef = collection(db, "adminUsers");
-    const q = query(adminUsersRef, where("eventId", "==", eventId));
-    const querySnapshot = await getDocs(q);
-    
-    return { exists: !querySnapshot.empty };
+    return { exists: result.rows.length > 0 };
   } catch (error) {
     console.error("Error checking admin users:", error);
     return { exists: false };

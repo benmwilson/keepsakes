@@ -1,18 +1,12 @@
 
 "use server";
 
-import { db } from "@/lib/firebase";
+import { query } from "@/lib/database";
 import { Keepsake } from "@/lib/types";
-import { addDoc, collection, serverTimestamp, doc, updateDoc, deleteDoc, getDoc } from "firebase/firestore";
 import { revalidatePath } from "next/cache";
 import { logger } from "@/lib/logger";
 
 export async function addKeepsake(eventId: string, eventSlug: string, keepsakeData: Omit<Keepsake, "id" | "createdAt" | "eventId" | "pinned">) {
-  if (!db) {
-    console.warn("Firebase not initialized, cannot add keepsake");
-    return { success: false, error: "Firebase not initialized" };
-  }
-
   try {
     // Log upload start
     await logger.guestUploadStarted(
@@ -22,18 +16,30 @@ export async function addKeepsake(eventId: string, eventSlug: string, keepsakeDa
       keepsakeData.type === 'text' ? undefined : (keepsakeData.fileUrls?.[0] || keepsakeData.fileUrl)
     );
 
-    const docRef = await addDoc(collection(db, "keepsakes"), {
-      ...keepsakeData,
-      eventId,
-      pinned: false,
-      createdAt: serverTimestamp(),
-    });
+    const result = await query(
+      `INSERT INTO keepsakes (event_id, type, file_url, file_urls, text, caption, name, pinned, hidden, created_at) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW()) 
+       RETURNING id`,
+      [
+        eventId,
+        keepsakeData.type,
+        keepsakeData.fileUrl || null,
+        keepsakeData.fileUrls || null,
+        keepsakeData.text || null,
+        keepsakeData.caption || null,
+        keepsakeData.name || null,
+        false, // pinned
+        false  // hidden
+      ]
+    );
+
+    const keepsakeId = result.rows[0].id;
 
     // Log successful upload
     await logger.guestUploadCompleted(
       eventSlug,
       eventId,
-      docRef.id,
+      keepsakeId,
       keepsakeData.type,
       keepsakeData.type === 'text' ? undefined : (keepsakeData.fileUrls?.[0] || keepsakeData.fileUrl)
     );
@@ -60,14 +66,11 @@ export async function addKeepsake(eventId: string, eventSlug: string, keepsakeDa
 }
 
 export async function togglePinKeepsake(eventSlug: string, keepsakeId: string, pinned: boolean) {
-    if (!db) {
-      console.warn("Firebase not initialized, cannot toggle pin");
-      return { success: false, error: "Firebase not initialized" };
-    }
-
     try {
-        const keepsakeRef = doc(db, 'keepsakes', keepsakeId);
-        await updateDoc(keepsakeRef, { pinned: !pinned });
+        await query(
+            'UPDATE keepsakes SET pinned = $1 WHERE id = $2',
+            [!pinned, keepsakeId]
+        );
         
         revalidatePath(`/wall?eventSlug=${eventSlug}`);
         revalidatePath(`/admin?eventSlug=${eventSlug}`);
@@ -80,14 +83,11 @@ export async function togglePinKeepsake(eventSlug: string, keepsakeId: string, p
 }
 
 export async function toggleHideKeepsake(eventSlug: string, keepsakeId: string, hidden: boolean) {
-    if (!db) {
-      console.warn("Firebase not initialized, cannot toggle hide");
-      return { success: false, error: "Firebase not initialized" };
-    }
-
     try {
-        const keepsakeRef = doc(db, 'keepsakes', keepsakeId);
-        await updateDoc(keepsakeRef, { hidden: !hidden });
+        await query(
+            'UPDATE keepsakes SET hidden = $1 WHERE id = $2',
+            [!hidden, keepsakeId]
+        );
         
         revalidatePath(`/wall?eventSlug=${eventSlug}`);
         revalidatePath(`/admin?eventSlug=${eventSlug}`);
@@ -100,14 +100,8 @@ export async function toggleHideKeepsake(eventSlug: string, keepsakeId: string, 
 }
 
 export async function deleteKeepsake(eventSlug: string, keepsakeId: string) {
-    if (!db) {
-      console.warn("Firebase not initialized, cannot delete keepsake");
-      return { success: false, error: "Firebase not initialized" };
-    }
-
     try {
-        const keepsakeRef = doc(db, 'keepsakes', keepsakeId);
-        await deleteDoc(keepsakeRef);
+        await query('DELETE FROM keepsakes WHERE id = $1', [keepsakeId]);
 
         revalidatePath(`/wall?eventSlug=${eventSlug}`);
         revalidatePath(`/admin?eventSlug=${eventSlug}`);
@@ -120,28 +114,23 @@ export async function deleteKeepsake(eventSlug: string, keepsakeId: string) {
 }
 
 export async function deleteGalleryItem(eventSlug: string, keepsakeId: string, itemIndex: number) {
-    if (!db) {
-      console.warn("Firebase not initialized, cannot delete gallery item");
-      return { success: false, error: "Firebase not initialized" };
-    }
-
     try {
-        const keepsakeRef = doc(db, 'keepsakes', keepsakeId);
-        
         // Get the current keepsake to access its fileUrls
-        const keepsakeDoc = await getDoc(keepsakeRef);
-        if (!keepsakeDoc.exists()) {
+        const result = await query('SELECT file_urls FROM keepsakes WHERE id = $1', [keepsakeId]);
+        if (result.rows.length === 0) {
             return { success: false, error: "Keepsake not found." };
         }
         
-        const keepsakeData = keepsakeDoc.data() as Keepsake;
-        if (!keepsakeData.fileUrls || keepsakeData.fileUrls.length <= 1) {
+        const keepsakeData = result.rows[0];
+        const fileUrls = keepsakeData.file_urls;
+        
+        if (!fileUrls || fileUrls.length <= 1) {
             // If only one item left, delete the entire keepsake
-            await deleteDoc(keepsakeRef);
+            await query('DELETE FROM keepsakes WHERE id = $1', [keepsakeId]);
         } else {
             // Remove the specific item from the array
-            const updatedFileUrls = keepsakeData.fileUrls.filter((_, index) => index !== itemIndex);
-            await updateDoc(keepsakeRef, { fileUrls: updatedFileUrls });
+            const updatedFileUrls = fileUrls.filter((_: any, index: number) => index !== itemIndex);
+            await query('UPDATE keepsakes SET file_urls = $1 WHERE id = $2', [updatedFileUrls, keepsakeId]);
         }
 
         revalidatePath(`/wall?eventSlug=${eventSlug}`);

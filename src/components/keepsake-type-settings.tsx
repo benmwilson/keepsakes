@@ -9,8 +9,7 @@ import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { Camera, Clapperboard, FileText, GalleryHorizontal } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { updateEvent } from "@/actions/events";
 
 interface KeepsakeTypeSettingsProps {
   event: SerializableEvent;
@@ -71,26 +70,23 @@ export default function KeepsakeTypeSettings({ event, onDirtyChange }: KeepsakeT
       return;
     }
 
-    if (!db) {
-      toast({
-        title: "Firebase not initialized",
-        description: "Cannot save settings. Please check your configuration.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsSaving(true);
     try {
-      await updateDoc(doc(db, "events", event.id), {
-        enabledKeepsakeTypes: enabledTypes,
-      });
+      const result = await updateEvent(event.id, event.slug, { enabledKeepsakeTypes: enabledTypes });
       
-      setIsDirty(false);
-      toast({
-        title: "Settings saved",
-        description: "Keepsake type settings have been updated.",
-      });
+      if (result.success) {
+        setIsDirty(false);
+        toast({
+          title: "Settings saved",
+          description: "Keepsake type settings have been updated.",
+        });
+      } else {
+        toast({
+          title: "Save failed",
+          description: result.error || "Failed to save keepsake type settings. Please try again.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error("Failed to save keepsake type settings:", error);
       toast({

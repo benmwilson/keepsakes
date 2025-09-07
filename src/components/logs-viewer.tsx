@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { StoredLogEntry, getLogsForEvent } from "@/lib/logs";
+import { fetchLogsForEvent } from "@/actions/logs";
+import type { StoredLogEntry } from "@/lib/logs";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
@@ -24,7 +25,7 @@ export default function LogsViewer({ event }: LogsViewerProps) {
     setLoading(true);
     try {
       const category = selectedCategory === "all" ? undefined : selectedCategory as any;
-      const logsData = await getLogsForEvent(event.id, logLimit, category);
+      const logsData = await fetchLogsForEvent(event.id, logLimit, category);
       setLogs(logsData);
     } catch (error) {
       console.error("Failed to fetch logs:", error);

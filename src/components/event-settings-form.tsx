@@ -5,8 +5,9 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Image from "next/image";
-import { getDownloadURL, listAll, ref, uploadBytesResumable } from "firebase/storage";
-import { storage } from "@/lib/firebase";
+// TODO: Replace Firebase Storage with file upload solution
+// import { getDownloadURL, listAll, ref, uploadBytesResumable } from "firebase/storage";
+// import { storage } from "@/lib/firebase";
 import { Event, SerializableEvent } from "@/lib/types";
 import { updateEvent } from "@/actions/events";
 import { useToast } from "@/hooks/use-toast";
@@ -70,11 +71,13 @@ export default function EventSettingsForm({
   useEffect(() => {
     const fetchImages = async () => {
       try {
+        // TODO: Replace with file storage solution
         // Keepsake images are stored in `keepsakes/{eventId}`
-        const listRef = ref(storage, `keepsakes/${event.id}`);
-        const res = await listAll(listRef);
-        const urls = await Promise.all(res.items.map((itemRef) => getDownloadURL(itemRef)));
-        setExistingImages(urls);
+        // const listRef = ref(storage, `keepsakes/${event.id}`);
+        // const res = await listAll(listRef);
+        // const urls = await Promise.all(res.items.map((itemRef) => getDownloadURL(itemRef)));
+        // setExistingImages(urls);
+        setExistingImages([]); // Temporary empty array
       } catch (e) {
           console.error("Could not list existing images, this may be due to storage rules.", e)
       }
@@ -176,6 +179,9 @@ export default function EventSettingsForm({
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    // TODO: Replace with file upload solution
+    toast({ title: "File Upload", description: "File upload functionality needs to be implemented with PostgreSQL storage.", variant: "destructive" });
+    /*
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       if (file) {
@@ -204,6 +210,7 @@ export default function EventSettingsForm({
         );
       }
     }
+    */
   };
   
   const handleRemoveImage = () => {

@@ -2,13 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import {
-  collection,
-  query,
-  onSnapshot,
-  where,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getEventBySlug, getKeepsakesByEventId } from "@/actions/gallery";
 import type { Keepsake, Event } from "@/lib/types";
 import KeepsakeCard from "@/components/memory-card";
 import {
@@ -41,60 +35,43 @@ function GalleryContent() {
       return;
     }
     
-    const eventsRef = collection(db, "events");
-    const eventQuery = query(eventsRef, where("slug", "==", eventSlug));
-    
-    const unsubscribeEvent = onSnapshot(eventQuery, (querySnapshot) => {
-      if (querySnapshot.empty) {
-        console.error("Event not found:", eventSlug);
+    const fetchEvent = async () => {
+      try {
+        const eventData = await getEventBySlug(eventSlug);
+        if (!eventData) {
+          console.error("Event not found:", eventSlug);
+          router.push('/');
+          return;
+        }
+        
+        setEvent({ 
+          ...eventData, 
+          id: eventData.id,
+          createdAt: eventData.createdAt?.toISOString() || new Date().toISOString() 
+        });
+      } catch (error) {
+        console.error("Error fetching event:", error);
         router.push('/');
-        return;
       }
-      
-      const eventDoc = querySnapshot.docs[0];
-      const eventData = eventDoc.data() as Event;
-      setEvent({ 
-        ...eventData, 
-        id: eventDoc.id,
-        createdAt: eventData.createdAt?.toDate?.()?.toISOString() || new Date().toISOString() 
-      });
-    });
+    };
     
-    return () => unsubscribeEvent();
+    fetchEvent();
   }, [eventSlug, router]);
 
   // Effect for handling keepsakes collection updates
   useEffect(() => {
     if (!event?.id) return;
     
-    const keepsakesQuery = query(
-      collection(db, "keepsakes"),
-      where("eventId", "==", event.id)
-    );
+    const fetchKeepsakes = async () => {
+      try {
+        const keepsakesData = await getKeepsakesByEventId(event.id);
+        setKeepsakes(keepsakesData);
+      } catch (error) {
+        console.error("Error fetching keepsakes:", error);
+      }
+    };
     
-    const unsubscribeKeepsakes = onSnapshot(keepsakesQuery, (querySnapshot) => {
-      const keepsakesData: Keepsake[] = [];
-      querySnapshot.forEach((doc) => {
-        const keepsake = { id: doc.id, ...doc.data() } as Keepsake;
-        // Filter out hidden keepsakes for the gallery
-        if (!keepsake.hidden) {
-          keepsakesData.push(keepsake);
-        }
-      });
-      
-      // Sort by pinned first, then by creation date (newest first)
-      keepsakesData.sort((a, b) => {
-        if (a.pinned && !b.pinned) return -1;
-        if (!a.pinned && b.pinned) return 1;
-        const dateA = a.createdAt?.toDate?.()?.getTime() || 0;
-        const dateB = b.createdAt?.toDate?.()?.getTime() || 0;
-        return dateB - dateA;
-      });
-
-      setKeepsakes(keepsakesData);
-    });
-    
-    return () => unsubscribeKeepsakes();
+    fetchKeepsakes();
   }, [event?.id]);
 
   const handleKeepsakeClick = (keepsake: Keepsake) => {

@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
-import { storage } from "@/lib/firebase";
+// TODO: Replace Firebase Storage with file upload solution
+// import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+// import { storage } from "@/lib/firebase";
 import { addKeepsake } from "@/actions/memories";
 import type { Event } from "@/lib/types";
-import { logger } from "@/lib/logger";
+import { clientLogger } from "@/lib/client-logger";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -113,7 +114,7 @@ export default function UploadForm({ event }: { event: SerializableEvent }) {
 
   // Log when user visits upload page
   useEffect(() => {
-    logger.guestVisitedUploadPage(event.slug, event.id).catch(console.error);
+    clientLogger.guestVisitedUploadPage(event.slug, event.id).catch(console.error);
   }, [event.slug, event.id]);
 
   const {
@@ -140,7 +141,7 @@ export default function UploadForm({ event }: { event: SerializableEvent }) {
   
   useEffect(() => {
     if (watchedConsent && event.consentRequired) {
-      logger.guestConsentGiven(event.slug, event.id, watchedName).catch(console.error);
+      clientLogger.guestConsentGiven(event.slug, event.id, watchedName).catch(console.error);
     }
   }, [watchedConsent, event.consentRequired, event.slug, event.id, watchedName]);
 

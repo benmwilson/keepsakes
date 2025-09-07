@@ -1,23 +1,14 @@
 
 "use server";
 
-import { db } from "@/lib/firebase";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { query } from "@/lib/database";
 
 export async function addGuestEmail(eventId: string, data: { email: string; name?: string; }) {
-  if (!db) {
-    console.warn("Firebase not initialized, cannot add guest email");
-    return { success: false, error: "Firebase not initialized" };
-  }
-
   try {
-    await addDoc(collection(db, "guestEmails"), {
-      eventId,
-      email: data.email,
-      name: data.name || '',
-      hasConsented: true,
-      createdAt: serverTimestamp(),
-    });
+    await query(
+      'INSERT INTO guest_emails (event_id, email, name, has_consented, created_at) VALUES ($1, $2, $3, $4, NOW())',
+      [eventId, data.email, data.name || '', true]
+    );
     return { success: true };
   } catch (error) {
     console.error("Error adding guest email:", error);

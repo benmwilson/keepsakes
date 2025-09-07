@@ -1,5 +1,4 @@
-import { db } from "./firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { query } from "./database";
 import { cookies } from "next/headers";
 
 export interface AdminUser {
@@ -15,30 +14,29 @@ const SESSION_COOKIE_NAME = "admin_session";
 const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 export async function authenticateAdmin(username: string, password: string, eventId: string): Promise<{ success: boolean; user?: AdminUser; error?: string }> {
-  if (!db) {
-    console.warn("Firebase not initialized, cannot authenticate admin");
-    return { success: false, error: "Firebase not initialized" };
-  }
-
   try {
-    const adminUsersRef = collection(db, "adminUsers");
-    const q = query(
-      adminUsersRef, 
-      where("username", "==", username),
-      where("eventId", "==", eventId)
+    const result = await query(
+      'SELECT * FROM admin_users WHERE username = $1 AND event_id = $2',
+      [username, eventId]
     );
     
-    const querySnapshot = await getDocs(q);
-    
-    if (querySnapshot.empty) {
+    if (result.rows.length === 0) {
       return { success: false, error: "Invalid credentials" };
     }
     
-    const adminDoc = querySnapshot.docs[0];
-    const adminData = adminDoc.data() as AdminUser;
+    const adminData = result.rows[0];
     
     if (adminData.password === password) {
-      return { success: true, user: { ...adminData, id: adminDoc.id } };
+      return { 
+        success: true, 
+        user: { 
+          id: adminData.id,
+          username: adminData.username,
+          password: adminData.password,
+          eventId: adminData.event_id,
+          createdAt: adminData.created_at
+        } 
+      };
     } else {
       return { success: false, error: "Invalid credentials" };
     }

@@ -1,5 +1,5 @@
 // Database connection utility for Postgres
-// TODO: Implement actual Postgres connection logic
+// Server-side only - cannot be used in client components
 
 import { Pool } from 'pg';
 
