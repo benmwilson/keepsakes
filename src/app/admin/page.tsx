@@ -11,6 +11,7 @@ import { Event } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import SharedLayout from "@/components/shared-layout";
 import { checkAdminSession, logoutAdmin, checkAdminUsersExist } from "@/actions/admin-auth";
+import { isFirstTimeSetup } from "@/actions/setup";
 import { MotionDiv } from "@/components/motion";
 import {
   AlertDialog,
@@ -47,6 +48,13 @@ function AdminPageContent() {
 
   useEffect(() => {
     const fetchEventAndCheckAuth = async () => {
+      // Check if first-time setup is needed
+      const needsSetup = await isFirstTimeSetup();
+      if (needsSetup) {
+        router.push("/setup");
+        return;
+      }
+
       const eventSlug = searchParams.get("eventSlug");
       if (!eventSlug) {
         router.push("/");

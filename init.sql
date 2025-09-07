@@ -53,6 +53,15 @@ CREATE TABLE IF NOT EXISTS guest_emails (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS admin_users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    username VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(username, event_id)
+);
+
 CREATE TABLE IF NOT EXISTS logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     level VARCHAR(10) NOT NULL CHECK (level IN ('info', 'warn', 'error', 'debug')),
@@ -65,6 +74,15 @@ CREATE TABLE IF NOT EXISTS logs (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Create app configuration table for storing app-wide settings
+CREATE TABLE IF NOT EXISTS app_config (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    key VARCHAR(255) UNIQUE NOT NULL,
+    value TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_events_slug ON events(slug);
 CREATE INDEX IF NOT EXISTS idx_keepsakes_event_id ON keepsakes(event_id);
@@ -72,19 +90,12 @@ CREATE INDEX IF NOT EXISTS idx_keepsakes_type ON keepsakes(type);
 CREATE INDEX IF NOT EXISTS idx_keepsakes_created_at ON keepsakes(created_at);
 CREATE INDEX IF NOT EXISTS idx_guest_emails_event_id ON guest_emails(event_id);
 CREATE INDEX IF NOT EXISTS idx_guest_emails_email ON guest_emails(email);
+CREATE INDEX IF NOT EXISTS idx_admin_users_event_id ON admin_users(event_id);
+CREATE INDEX IF NOT EXISTS idx_admin_users_username ON admin_users(username);
 CREATE INDEX IF NOT EXISTS idx_logs_event_id ON logs(event_id);
 CREATE INDEX IF NOT EXISTS idx_logs_created_at ON logs(created_at);
 CREATE INDEX IF NOT EXISTS idx_logs_category ON logs(category);
+CREATE INDEX IF NOT EXISTS idx_app_config_key ON app_config(key);
 
--- Insert a default event for testing
-INSERT INTO events (slug, name, subtitle, hero_image_url, instructions, consent_required, paused)
-VALUES (
-    'my-event',
-    'My Special Event',
-    'Celebrating Together!',
-    'https://placehold.co/1200x600.png',
-    'Share your favorite memory from this event! It can be a photo, a short video, or a heartfelt message. We''ll be showing these on a big screen during the event.',
-    true,
-    false
-) ON CONFLICT (slug) DO NOTHING;
+-- No default event - first time setup will create the event
 

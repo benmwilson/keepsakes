@@ -1,4 +1,5 @@
 
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight, GalleryHorizontal, PanelTopOpen, LogOut } from "lucide-react";
@@ -8,8 +9,15 @@ import SharedLayout from "@/components/shared-layout";
 import { APP_CONFIG } from "@/lib/config";
 import { getSingleEvent } from "@/lib/events";
 import LogoutButton from "@/components/logout-button";
+import { isFirstTimeSetup } from "@/actions/setup";
 
 export default async function Home() {
+  // Check if first-time setup is needed
+  const needsSetup = await isFirstTimeSetup();
+  if (needsSetup) {
+    redirect("/setup");
+  }
+
   // Get the single event to use its actual slug
   const eventData = await getSingleEvent();
   const currentSlug = eventData?.slug || APP_CONFIG.DEFAULT_EVENT_SLUG;
