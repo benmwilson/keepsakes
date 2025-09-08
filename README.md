@@ -221,7 +221,6 @@ This project uses GitHub Actions for automated testing and deployment:
 
 - **CI Pipeline** - Automated testing, linting, and building on staging and main branches
 - **Docker Builds** - Multi-platform Docker images for staging and main branches
-- **Dependency Updates** - Weekly automated updates via Dependabot
 - **Security Scanning** - Automated vulnerability scanning with npm audit
 - **Issue Templates** - Standardized bug reports and feature requests
 
