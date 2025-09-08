@@ -1,7 +1,7 @@
 ---
 name: Bug Report
 about: Report a bug or issue with the Keepsakes app
-title: '[BUG] '
+title: 'Bug: '
 labels: 
   - bug
 assignees: ''
