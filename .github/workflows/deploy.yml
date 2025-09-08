@@ -10,6 +10,7 @@ on:
         type: choice
         options:
         - local
+        - dev
         - staging
         - production
       image_tag:
