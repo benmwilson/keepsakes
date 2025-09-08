@@ -26,13 +26,13 @@ export async function authenticateAdmin(username: string, password: string, even
     
     const adminData = result.rows[0];
     
-    if (adminData.password === password) {
+    if (adminData.password_hash === password) {
       return { 
         success: true, 
         user: { 
           id: adminData.id,
           username: adminData.username,
-          password: adminData.password,
+          password: adminData.password_hash,
           eventId: adminData.event_id,
           createdAt: adminData.created_at
         } 

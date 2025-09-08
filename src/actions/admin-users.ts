@@ -14,7 +14,7 @@ export async function createAdminUser(username: string, password: string, eventI
 
     // Create admin user (password should be hashed in production)
     const result = await query(
-      'INSERT INTO admin_users (username, password, event_id, created_at) VALUES ($1, $2, $3, NOW()) RETURNING id',
+      'INSERT INTO admin_users (username, password_hash, event_id, created_at) VALUES ($1, $2, $3, NOW()) RETURNING id',
       [username, password, eventId]
     );
     
