@@ -1,4 +1,4 @@
-import { LogEntry } from "./logger";
+import { LogEntry } from "../logger";
 
 export interface StoredLogEntry extends LogEntry {
   id: string;

@@ -31,8 +31,8 @@ export const dynamic = 'force-dynamic';
 const serializeEvent = (event: Event) => {
   return {
     ...event,
-    createdAt: event.createdAt?.toDate?.()?.toISOString() || null,
-    restartAutoplay: event.restartAutoplay?.toDate?.()?.toISOString() || null,
+    createdAt: event.createdAt?.toISOString() || null,
+    restartAutoplay: event.restartAutoplay?.toISOString() || null,
   };
 };
 

@@ -47,6 +47,7 @@
         <li><a href="#database-setup">Database Setup</a></li>
       </ul>
     </li>
+    <li><a href="#ci-cd">CI/CD</a></li>
     <li><a href="#license">License</a></li>
   </ol>
 </details>
@@ -212,6 +213,50 @@ The application uses PostgreSQL with the following schema:
 
 See `init.sql` for the complete database schema.
 
+# CI/CD
+
+This project uses GitHub Actions for automated testing and deployment:
+
+## Automated Workflows
+
+- **CI Pipeline** - Automated testing, linting, and building on staging and main branches
+- **Docker Builds** - Multi-platform Docker images for staging and main branches
+- **Dependency Updates** - Weekly automated updates via Dependabot
+- **Security Scanning** - Automated vulnerability scanning with npm audit
+- **Issue Templates** - Standardized bug reports and feature requests
+
+## Branching Strategy
+
+- **`dev`** - Active development branch (CI checks on PRs only, no push automation)
+- **`staging`** - Pre-production testing branch (Full CI checks + Docker builds)
+- **`main`** - Production-ready branch (Full CI checks + Docker builds)
+- **Version tags** - Production releases (e.g., `v1.0.0`)
+
+## Manual Deployment
+
+For production deployments:
+
+1. **Build the Docker image**
+   ```sh
+   docker build -t keepsakes .
+   ```
+
+2. **Run the container**
+   ```sh
+   docker run -p 3000:3000 keepsakes
+   ```
+
+3. **Or use Docker Compose**
+   ```sh
+   docker-compose up -d
+   ```
+
+## Environment Variables
+
+Required environment variables (see `env.example`):
+- `DATABASE_URL` - PostgreSQL connection string
+- `NEXTAUTH_SECRET` - Authentication secret
+- `NEXTAUTH_URL` - Application URL
 
 <!-- LICENSE -->
 

@@ -46,7 +46,7 @@ export async function getLogsForEvent(
     const params = category ? [eventId, limitCount, category] : [eventId, limitCount];
     const result = await query(queryText, params);
     
-    return result.rows.map(row => ({
+    return result.rows.map((row: any) => ({
       id: row.id,
       timestamp: row.created_at,
       level: row.level,
@@ -71,7 +71,7 @@ export async function getRecentLogs(limitCount: number = 50): Promise<StoredLogE
       [limitCount]
     );
     
-    return result.rows.map(row => ({
+    return result.rows.map((row: any) => ({
       id: row.id,
       timestamp: row.created_at,
       level: row.level,

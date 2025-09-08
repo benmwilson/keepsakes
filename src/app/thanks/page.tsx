@@ -50,7 +50,7 @@ function ThanksContent() {
                 
                 setEvent({
                     ...eventData,
-                    createdAt: eventData.createdAt?.toDate?.()?.toISOString() || null,
+                    createdAt: eventData.createdAt?.toISOString() || null,
                 });
             } else {
                 router.push("/");
