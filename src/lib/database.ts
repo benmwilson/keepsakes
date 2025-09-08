@@ -10,7 +10,8 @@ const dbConfig = {
   user: process.env.DB_USER || 'keepsakes_user',
   password: process.env.DB_PASS || 'keepsakes_password',
   database: process.env.DB_NAME || 'keepsakes_db',
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  // Disable SSL for local development and Docker containers
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 };
 
 // Create connection pool

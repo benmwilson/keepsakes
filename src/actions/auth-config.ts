@@ -1,11 +1,7 @@
-// Authentication Configuration
-import { query } from '@/lib/database';
+"use server";
 
-export const AUTH_CONFIG = {
-  SITE_PASSWORD: process.env.NEXT_PUBLIC_SITE_PASSWORD || process.env.SITE_PASSWORD || '',
-  // You can add more configuration options here in the future
-  // such as multiple passwords, time-based access, etc.
-} as const;
+import { query } from '@/lib/database';
+import { AUTH_CONFIG } from '@/lib/auth-config-constants';
 
 // Site configuration functions
 export const initializeSiteConfig = async (sitePassword: string) => {

@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { User, Lock, Eye, EyeOff, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createAdminUser } from "@/actions/admin-users";
-import { initializeSiteConfig } from "@/lib/auth-config";
+import { initializeSiteConfig } from "@/actions/auth-config";
 import type { Event } from "@/lib/types";
 
 type SerializableEvent = Omit<Event, "createdAt" | "restartAutoplay"> & { createdAt: string, restartAutoplay?: string };

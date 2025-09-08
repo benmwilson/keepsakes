@@ -14,7 +14,7 @@ import { addGuestEmail } from "@/actions/guests";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, PartyPopper, PlusCircle } from "lucide-react";
 import { MotionDiv } from "@/components/motion";
-import { getSingleEvent } from "@/lib/events";
+import { getSingleEvent } from "@/actions/events";
 import type { Event } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import SharedLayout from "@/components/shared-layout";

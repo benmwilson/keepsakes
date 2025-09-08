@@ -1,5 +1,5 @@
 
-import { getSingleEvent } from "@/lib/events";
+import { getSingleEvent } from "@/actions/events";
 import SimpleMemoryWall from "@/components/simple-memory-wall";
 import { notFound } from "next/navigation";
 import { Event } from "@/lib/types";

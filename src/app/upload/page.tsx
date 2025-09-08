@@ -1,5 +1,5 @@
 
-import { getSingleEvent } from "@/lib/events";
+import { getSingleEvent } from "@/actions/events";
 import UploadForm from "@/components/upload-form";
 import Logo from "@/components/logo";
 import Image from "next/image";

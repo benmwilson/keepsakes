@@ -1,6 +1,7 @@
 "use server";
 
-import { getLogsForEvent, getRecentLogs, StoredLogEntry } from "@/lib/logs";
+import { getLogsForEvent, getRecentLogs } from "@/lib/logs";
+import type { StoredLogEntry } from "@/lib/types/logs";
 
 export async function fetchLogsForEvent(
   eventId: string, 

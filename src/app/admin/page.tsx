@@ -3,7 +3,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { getSingleEvent } from "@/lib/events";
+import { getSingleEvent } from "@/actions/events";
 import AdminDashboard from "@/components/admin-dashboard";
 import AdminAuth from "@/components/admin-auth";
 import CreateAdminUser from "@/components/create-admin-user";

@@ -1,8 +1,6 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-// TODO: Replace with actual auth configuration
-// import { AUTH_CONFIG, getSitePassword, getPasswordProtectionStatus } from './auth-config';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -23,20 +21,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshAuthStatus = async () => {
     try {
-      // TODO: Replace with actual database check
-      // const protectionEnabled = await getPasswordProtectionStatus();
-      const protectionEnabled = false; // Mock: disable password protection for testing
-      setIsPasswordProtectionEnabled(protectionEnabled);
+      // Check password protection status via API
+      const response = await fetch('/api/auth/protection-status');
+      if (response.ok) {
+        const result = await response.json();
+        const protectionEnabled = result.enabled;
+        setIsPasswordProtectionEnabled(protectionEnabled);
 
-      // If password protection is disabled, automatically authenticate
-      if (!protectionEnabled) {
-        setIsAuthenticated(true);
-      } else {
-        // Check if user is already authenticated on mount
-        const authStatus = localStorage.getItem('keepsakes-auth');
-        if (authStatus === 'true') {
+        // If password protection is disabled, automatically authenticate
+        if (!protectionEnabled) {
           setIsAuthenticated(true);
+        } else {
+          // Check if user is already authenticated on mount
+          const authStatus = localStorage.getItem('keepsakes-auth');
+          if (authStatus === 'true') {
+            setIsAuthenticated(true);
+          }
         }
+      } else {
+        // Fallback: assume password protection is disabled
+        setIsPasswordProtectionEnabled(false);
+        setIsAuthenticated(true);
       }
     } catch (error) {
       console.error('Error refreshing auth status:', error);
@@ -57,21 +62,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const authenticate = async (password: string): Promise<boolean> => {
     try {
-      const sitePassword = await getSitePassword();
-      if (password === sitePassword) {
-        setIsAuthenticated(true);
-        localStorage.setItem('keepsakes-auth', 'true');
-        return true;
+      // Call server action to verify password
+      const response = await fetch('/api/auth/verify-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setIsAuthenticated(true);
+          localStorage.setItem('keepsakes-auth', 'true');
+          return true;
+        }
       }
       return false;
     } catch (error) {
       console.error('Authentication error:', error);
-      // Fallback to environment variable
-      if (password === AUTH_CONFIG.SITE_PASSWORD) {
-        setIsAuthenticated(true);
-        localStorage.setItem('keepsakes-auth', 'true');
-        return true;
-      }
       return false;
     }
   };

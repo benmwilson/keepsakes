@@ -7,7 +7,7 @@ import Logo from "@/components/logo";
 import { MotionDiv } from "@/components/motion";
 import SharedLayout from "@/components/shared-layout";
 import { APP_CONFIG } from "@/lib/config";
-import { getSingleEvent } from "@/lib/events";
+import { getSingleEvent } from "@/actions/events";
 import LogoutButton from "@/components/logout-button";
 import { isFirstTimeSetup } from "@/actions/setup";
 

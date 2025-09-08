@@ -2,51 +2,11 @@
 
 import { query } from "@/lib/database";
 import { createAdminUser } from "@/actions/admin-users";
-import { initializeSiteConfig } from "@/lib/auth-config";
+import { initializeSiteConfig } from "@/actions/auth-config";
 import { revalidatePath } from "next/cache";
 
-export interface SetupData {
-  // Event Configuration
-  eventName: string;
-  eventSlug: string;
-  eventSubtitle?: string;
-  eventInstructions?: string;
-  heroImageUrl?: string;
-  heroColor?: string;
-  
-  // Admin User
-  adminUsername: string;
-  adminPassword: string;
-  
-  // Security
-  sitePassword?: string;
-  enablePasswordProtection: boolean;
-  
-  // Google Analytics
-  enableGoogleAnalytics: boolean;
-  googleAnalyticsId?: string;
-  
-  // Event Settings
-  consentRequired: boolean;
-  allowDownloads: boolean;
-  showCaptions: boolean;
-  showAuthorNames: boolean;
-  enableFullscreen: boolean;
-  autoplayDelay: number;
-  galleryItemDelay: number;
-  galleryTransitionDuration: number;
-  mobileGridColumns: number;
-  gallerySizeLimit: number;
-  emailRegistrationEnabled: boolean;
-  
-  // Keepsake Types
-  enabledKeepsakeTypes: {
-    photo: boolean;
-    video: boolean;
-    text: boolean;
-    gallery: boolean;
-  };
-}
+import type { SetupData } from "@/lib/types/setup";
+
 
 export async function isFirstTimeSetup(): Promise<boolean> {
   try {
@@ -72,19 +32,17 @@ export async function completeFirstTimeSetup(setupData: SetupData): Promise<{ su
     // Create the event
     const eventResult = await query(
       `INSERT INTO events (
-        slug, name, subtitle, hero_image_url, hero_color, instructions, 
+        slug, name, subtitle, instructions, 
         consent_required, paused, autoplay_delay, gallery_item_delay, 
         gallery_transition_duration, allow_downloads, enabled_keepsake_types,
         show_captions, show_author_names, enable_fullscreen, mobile_grid_columns,
         gallery_size_limit, email_registration_enabled, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW()) 
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW()) 
       RETURNING id`,
       [
         setupData.eventSlug,
         setupData.eventName,
         setupData.eventSubtitle || null,
-        setupData.heroImageUrl || null,
-        setupData.heroColor || null,
         setupData.eventInstructions || null,
         setupData.consentRequired,
         false, // paused

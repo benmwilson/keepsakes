@@ -22,7 +22,7 @@ import { Progress } from "./ui/progress";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { ScrollArea } from "./ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { getPasswordProtectionStatus, setPasswordProtectionStatus, getSitePassword, setSitePassword } from "@/lib/auth-config";
+import { getPasswordProtectionStatus, setPasswordProtectionStatus, getSitePassword, setSitePassword } from "@/actions/auth-config";
 import { useAuth } from "@/lib/auth-context";
 
 const formSchema = z.object({

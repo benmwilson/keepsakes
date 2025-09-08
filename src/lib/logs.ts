@@ -4,11 +4,9 @@
 
 import { query } from "@/lib/database";
 import { LogEntry } from "./logger";
+import type { StoredLogEntry } from "./types/logs";
 
-export interface StoredLogEntry extends LogEntry {
-  id: string;
-  created_at: string; // PostgreSQL timestamp
-}
+export type { StoredLogEntry };
 
 export async function storeLog(logEntry: Omit<LogEntry, 'timestamp'>): Promise<void> {
   try {

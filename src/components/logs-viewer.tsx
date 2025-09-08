@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { fetchLogsForEvent } from "@/actions/logs";
-import type { StoredLogEntry } from "@/lib/logs";
+import type { StoredLogEntry } from "@/lib/types/logs";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";

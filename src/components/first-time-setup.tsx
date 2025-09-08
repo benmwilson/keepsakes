@@ -29,7 +29,8 @@ import {
   Eye,
   EyeOff
 } from "lucide-react";
-import { completeFirstTimeSetup, type SetupData } from "@/actions/setup";
+import { completeFirstTimeSetup } from "@/actions/setup";
+import type { SetupData } from "@/lib/types/setup";
 
 const setupSchema = z.object({
   // Event Configuration
@@ -37,8 +38,6 @@ const setupSchema = z.object({
   eventSlug: z.string().min(1, "Event slug is required").max(50).regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
   eventSubtitle: z.string().max(150).optional(),
   eventInstructions: z.string().max(500).optional(),
-  heroImageUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
-  heroColor: z.string().regex(/^#[0-9A-F]{6}$/i, "Must be a valid hex color").optional().or(z.literal("")),
   
   // Admin User
   adminUsername: z.string().min(3, "Username must be at least 3 characters").max(50),
@@ -106,8 +105,6 @@ export default function FirstTimeSetup() {
       eventSlug: "",
       eventSubtitle: "",
       eventInstructions: "Share your favorite memory from this event! It can be a photo, a short video, or a heartfelt message.",
-      heroImageUrl: "",
-      heroColor: "#3b82f6",
       adminUsername: "",
       adminPassword: "",
       sitePassword: "",
@@ -139,9 +136,39 @@ export default function FirstTimeSetup() {
   const progress = (currentStep / STEPS.length) * 100;
 
   const nextStep = async () => {
-    const isStepValid = await trigger();
+    // Define which fields to validate for each step
+    const stepFields: Record<number, (keyof SetupFormData)[]> = {
+      1: ['eventName', 'eventSlug'],
+      2: ['adminUsername', 'adminPassword'],
+      3: ['sitePassword'], // Only validate if password protection is enabled
+      4: ['googleAnalyticsId'], // Only validate if GA is enabled
+      5: ['enabledKeepsakeTypes'],
+      6: ['autoplayDelay', 'galleryItemDelay', 'galleryTransitionDuration', 'mobileGridColumns', 'gallerySizeLimit']
+    };
+
+    const fieldsToValidate = stepFields[currentStep] || [];
+    
+    // For step 3, only validate sitePassword if password protection is enabled
+    if (currentStep === 3 && !watchedValues.enablePasswordProtection) {
+      fieldsToValidate.length = 0;
+    }
+    
+    // For step 4, only validate googleAnalyticsId if GA is enabled
+    if (currentStep === 4 && !watchedValues.enableGoogleAnalytics) {
+      fieldsToValidate.length = 0;
+    }
+
+    const isStepValid = fieldsToValidate.length === 0 || await trigger(fieldsToValidate);
+    
     if (isStepValid && currentStep < STEPS.length) {
       setCurrentStep(currentStep + 1);
+    } else if (!isStepValid) {
+      // Show error toast if validation fails
+      toast({
+        title: "Please fix the errors",
+        description: "Please correct the highlighted fields before proceeding.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -226,27 +253,6 @@ export default function FirstTimeSetup() {
                 rows={4}
               />
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="heroImageUrl">Hero Image URL</Label>
-                <Input
-                  id="heroImageUrl"
-                  {...register("heroImageUrl")}
-                  placeholder="https://example.com/image.jpg"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="heroColor">Theme Color</Label>
-                <Input
-                  id="heroColor"
-                  {...register("heroColor")}
-                  type="color"
-                  className="h-10"
-                />
-              </div>
-            </div>
           </div>
         );
 
@@ -312,12 +318,15 @@ export default function FirstTimeSetup() {
 
             {watchedValues.enablePasswordProtection && (
               <div className="space-y-2">
-                <Label htmlFor="sitePassword">Site Password</Label>
+                <Label htmlFor="sitePassword">Site Password *</Label>
                 <div className="relative">
                   <Input
                     id="sitePassword"
                     type={showPasswords.site ? "text" : "password"}
-                    {...register("sitePassword")}
+                    {...register("sitePassword", { 
+                      required: watchedValues.enablePasswordProtection ? "Site password is required when password protection is enabled" : false,
+                      minLength: { value: 6, message: "Password must be at least 6 characters" }
+                    })}
                     placeholder="Enter site password"
                   />
                   <Button
@@ -330,8 +339,13 @@ export default function FirstTimeSetup() {
                     {showPasswords.site ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
+                {errors.sitePassword && <p className="text-sm text-red-500">{errors.sitePassword.message}</p>}
               </div>
             )}
+
+            <p className="text-xs text-muted-foreground">
+              <strong>Note:</strong> Password protection can be configured later in the admin settings if you prefer to skip this step now.
+            </p>
           </div>
         );
 
@@ -360,17 +374,28 @@ export default function FirstTimeSetup() {
 
             {watchedValues.enableGoogleAnalytics && (
               <div className="space-y-2">
-                <Label htmlFor="googleAnalyticsId">Google Analytics Measurement ID</Label>
+                <Label htmlFor="googleAnalyticsId">Google Analytics Measurement ID *</Label>
                 <Input
                   id="googleAnalyticsId"
-                  {...register("googleAnalyticsId")}
+                  {...register("googleAnalyticsId", {
+                    required: watchedValues.enableGoogleAnalytics ? "Google Analytics ID is required when analytics is enabled" : false,
+                    pattern: {
+                      value: /^G-[A-Z0-9]{10}$/,
+                      message: "Please enter a valid Google Analytics 4 Measurement ID (format: G-XXXXXXXXXX)"
+                    }
+                  })}
                   placeholder="G-XXXXXXXXXX"
                 />
                 <p className="text-sm text-muted-foreground">
                   Find this in your Google Analytics 4 property settings
                 </p>
+                {errors.googleAnalyticsId && <p className="text-sm text-red-500">{errors.googleAnalyticsId.message}</p>}
               </div>
             )}
+
+            <p className="text-xs text-muted-foreground">
+              <strong>Note:</strong> Google Analytics can be configured later in the admin settings if you prefer to skip this step now.
+            </p>
           </div>
         );
 
@@ -479,6 +504,7 @@ export default function FirstTimeSetup() {
                     type="number"
                     {...register("autoplayDelay")}
                   />
+                  {errors.autoplayDelay && <p className="text-sm text-red-500">{errors.autoplayDelay.message}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -488,6 +514,7 @@ export default function FirstTimeSetup() {
                     type="number"
                     {...register("galleryItemDelay")}
                   />
+                  {errors.galleryItemDelay && <p className="text-sm text-red-500">{errors.galleryItemDelay.message}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -499,6 +526,7 @@ export default function FirstTimeSetup() {
                     max="4"
                     {...register("mobileGridColumns")}
                   />
+                  {errors.mobileGridColumns && <p className="text-sm text-red-500">{errors.mobileGridColumns.message}</p>}
                 </div>
               </div>
             </div>
