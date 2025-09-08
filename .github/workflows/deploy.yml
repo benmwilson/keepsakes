@@ -1,0 +1,105 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'local'
+        type: choice
+        options:
+        - local
+        - staging
+        - production
+      image_tag:
+        description: 'Docker image tag to deploy'
+        required: false
+        default: 'latest'
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy:
+    name: Deploy to ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+    
+    - name: Deploy to ${{ github.event.inputs.environment }}
+      run: |
+        echo "🚀 Deploying to ${{ github.event.inputs.environment }} environment..."
+        echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.image_tag }}"
+        echo ""
+        echo "📋 Deployment Commands:"
+        echo ""
+        echo "1. Pull the Docker image:"
+        echo "   docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.image_tag }}"
+        echo ""
+        echo "2. Run the container:"
+        echo "   docker run -d -p 3000:3000 --name keepsakes-${{ github.event.inputs.environment }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.image_tag }}"
+        echo ""
+        echo "3. Or use Docker Compose:"
+        echo "   docker-compose up -d"
+        echo ""
+        echo "4. Check container status:"
+        echo "   docker ps"
+        echo ""
+        echo "5. View logs:"
+        echo "   docker logs keepsakes-${{ github.event.inputs.environment }}"
+        echo ""
+        echo "6. Stop container:"
+        echo "   docker stop keepsakes-${{ github.event.inputs.environment }}"
+        echo "   docker rm keepsakes-${{ github.event.inputs.environment }}"
+        echo ""
+        echo "✅ Deployment instructions generated!"
+        echo "💡 Copy and run these commands on your target server."
+    
+    - name: Generate deployment script
+      run: |
+        cat > deploy.sh << 'EOF'
+        #!/bin/bash
+        # Keepsakes Deployment Script
+        # Generated on $(date)
+        
+        ENVIRONMENT="${{ github.event.inputs.environment }}"
+        IMAGE_TAG="${{ github.event.inputs.image_tag }}"
+        IMAGE_NAME="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.image_tag }}"
+        CONTAINER_NAME="keepsakes-${{ github.event.inputs.environment }}"
+        
+        echo "🚀 Deploying Keepsakes to $ENVIRONMENT..."
+        
+        # Stop existing container if running
+        if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
+            echo "🛑 Stopping existing container..."
+            docker stop $CONTAINER_NAME
+            docker rm $CONTAINER_NAME
+        fi
+        
+        # Pull latest image
+        echo "📥 Pulling latest image..."
+        docker pull $IMAGE_NAME
+        
+        # Run new container
+        echo "🚀 Starting new container..."
+        docker run -d -p 3000:3000 --name $CONTAINER_NAME $IMAGE_NAME
+        
+        # Check status
+        echo "✅ Deployment complete!"
+        echo "📊 Container status:"
+        docker ps -f name=$CONTAINER_NAME
+        
+        echo "📋 Useful commands:"
+        echo "  View logs: docker logs $CONTAINER_NAME"
+        echo "  Stop: docker stop $CONTAINER_NAME"
+        echo "  Remove: docker rm $CONTAINER_NAME"
+        EOF
+        
+        echo "📄 Deployment script generated: deploy.sh"
+        echo "💡 Make it executable with: chmod +x deploy.sh"
+        echo "💡 Run it with: ./deploy.sh"
