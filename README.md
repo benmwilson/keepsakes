@@ -12,6 +12,15 @@
   </p>
 </p>
 
+<!-- PROJECT LINKS -->
+<div align="center">
+
+[![Bug Tracker](https://img.shields.io/badge/🐛_Bug_Tracker-View_Issues-blue?style=for-the-badge&logo=github)](https://github.com/users/benmwilson/projects/1)
+[![Issues](https://img.shields.io/badge/📋_Issues-Report_Bug-red?style=for-the-badge&logo=github)](https://github.com/benmwilson/keepsakes/issues)
+[![Actions](https://img.shields.io/badge/📈_Actions-CI/CD_Status-orange?style=for-the-badge&logo=github)](https://github.com/benmwilson/keepsakes/actions)
+
+</div>
+
 <!-- TABLE OF CONTENTS -->
 <details open="open">
   <summary>Table of Contents</summary>

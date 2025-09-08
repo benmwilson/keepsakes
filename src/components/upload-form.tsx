@@ -20,6 +20,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
+import { useFormActivity } from "@/hooks/use-form-activity";
+import { useDatabase } from "@/lib/database-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Camera, Clapperboard, FileText, Send, GalleryHorizontal } from "lucide-react";
 
@@ -75,6 +77,12 @@ type UploadFormValues = z.infer<typeof formSchema>;
 type SerializableEvent = Omit<Event, "createdAt"> & { createdAt: string };
 
 export default function UploadForm({ event }: { event: SerializableEvent }) {
+  // Use form activity hook to pause database checks during form interaction
+  useFormActivity();
+  
+  // Get database context to set connection errors
+  const { setConnectionError } = useDatabase();
+
   // Helper function to count enabled types (excluding gallery since it's handled under photo)
   const getEnabledTypesCount = () => {
     const enabledTypes = event.enabledKeepsakeTypes || { photo: true, video: true, text: true, gallery: true };
@@ -195,9 +203,31 @@ export default function UploadForm({ event }: { event: SerializableEvent }) {
     });
   };
 
+  const checkDatabaseConnection = async () => {
+    try {
+      const response = await fetch('/api/database/health-check', { cache: 'no-store' });
+      const data = await response.json();
+      if (!data.connected) {
+        setConnectionError('Database connection lost');
+        return false;
+      }
+      return true;
+    } catch {
+      setConnectionError('Database connection lost');
+      return false;
+    }
+  };
+
   const onSubmit = async (data: UploadFormValues) => {
     setIsSubmitting(true);
     setUploadLog("Form submitted. Processing...");
+
+    // Check database connection before submitting
+    const isConnected = await checkDatabaseConnection();
+    if (!isConnected) {
+      setIsSubmitting(false);
+      return;
+    }
 
     // Validate consent if required
     if (event.consentRequired && !data.consent) {

@@ -7,13 +7,20 @@ import { Toaster } from "@/components/ui/toaster";
 import { MotionDiv } from "@/components/motion";
 import GA4PageView from "@/components/ga4-page-view";
 import { AuthProvider } from "@/lib/auth-context";
+import { DatabaseProvider } from "@/lib/database-context";
 import AuthWrapper from "@/components/auth-wrapper";
+import { DatabaseErrorBoundary } from "@/components/database-error-boundary";
 
 export const metadata: Metadata = {
   title: "Keepsakes",
   description: "A shared memory wall for your special events.",
   icons: {
-    icon: '/favicon.png',
+    icon: [
+      { url: '/favicon.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon.png', sizes: '16x16', type: 'image/png' },
+    ],
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
   },
 };
 
@@ -25,6 +32,13 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
+        {/* Favicon */}
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png" />
+        <link rel="shortcut icon" href="/favicon.png" />
+        <link rel="apple-touch-icon" href="/favicon.png" />
+        
+        {/* Fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -51,21 +65,25 @@ export default function RootLayout({
           `}
         </Script>
         
-        <AuthProvider>
-          <AuthWrapper>
-            <MotionDiv
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
-              className="flex-1 flex flex-col"
-            >
-              <Suspense fallback={null}>
-                <GA4PageView />
-              </Suspense>
-              {children}
-            </MotionDiv>
-          </AuthWrapper>
-        </AuthProvider>
+        <DatabaseProvider>
+          <AuthProvider>
+            <AuthWrapper>
+              <DatabaseErrorBoundary>
+                <MotionDiv
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, ease: "easeInOut" }}
+                  className="flex-1 flex flex-col"
+                >
+                  <Suspense fallback={null}>
+                    <GA4PageView />
+                  </Suspense>
+                  {children}
+                </MotionDiv>
+              </DatabaseErrorBoundary>
+            </AuthWrapper>
+          </AuthProvider>
+        </DatabaseProvider>
         <Toaster />
       </body>
     </html>

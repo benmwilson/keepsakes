@@ -4,12 +4,22 @@ import { query } from "@/lib/database";
 import { createAdminUser } from "@/actions/admin-users";
 import { initializeSiteConfig } from "@/actions/auth-config";
 import { revalidatePath } from "next/cache";
+import { withSetupErrorHandling } from "@/lib/server-action-wrapper";
 
 import type { SetupData } from "@/lib/types/setup";
 
 
 export async function isFirstTimeSetup(): Promise<boolean> {
-  try {
+  return withSetupErrorHandling(async () => {
+    // First check if we can connect to the database
+    const { checkConnection } = await import('@/lib/database');
+    const isConnected = await checkConnection();
+    
+    if (!isConnected) {
+      console.log("Database not connected, assuming first time setup");
+      return true;
+    }
+    
     // Check if any events exist
     const eventsResult = await query('SELECT COUNT(*) as count FROM events');
     const eventCount = parseInt(eventsResult.rows[0].count);
@@ -20,11 +30,7 @@ export async function isFirstTimeSetup(): Promise<boolean> {
     
     // First time setup if no events AND no admin users
     return eventCount === 0 && adminCount === 0;
-  } catch (error) {
-    console.error("Error checking setup status:", error);
-    // If there's an error, assume it's first time setup
-    return true;
-  }
+  }, true); // Fallback to true (first time setup) if any error occurs
 }
 
 export async function completeFirstTimeSetup(setupData: SetupData): Promise<{ success: boolean; error?: string }> {

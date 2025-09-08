@@ -1,14 +1,12 @@
-import { redirect } from "next/navigation";
-import { isFirstTimeSetup } from "@/actions/setup";
 import FirstTimeSetup from "@/components/first-time-setup";
+import { DatabaseErrorBoundary } from "@/components/database-error-boundary";
 
-export default async function SetupPage() {
-  const needsSetup = await isFirstTimeSetup();
-  
-  if (!needsSetup) {
-    // If setup is already complete, redirect to home
-    redirect("/");
-  }
-
-  return <FirstTimeSetup />;
+export default function SetupPage() {
+  // Always show setup page - no server-side database checks to avoid errors
+  // The client-side will handle database connection and setup completion checks
+  return (
+    <DatabaseErrorBoundary showOnSetupPage={true}>
+      <FirstTimeSetup />
+    </DatabaseErrorBoundary>
+  );
 }

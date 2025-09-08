@@ -13,6 +13,8 @@ import { Switch } from "./ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Progress } from "./ui/progress";
 import { useToast } from "@/hooks/use-toast";
+import { useFormActivity } from "@/hooks/use-form-activity";
+import { useDatabase } from "@/lib/database-context";
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -85,6 +87,12 @@ const STEPS = [
 ];
 
 export default function FirstTimeSetup() {
+  // Use form activity hook to pause database checks during form interaction
+  useFormActivity();
+  
+  // Get database context to set connection errors
+  const { setConnectionError } = useDatabase();
+
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [showPasswords, setShowPasswords] = useState({ admin: false, site: false });
@@ -161,6 +169,11 @@ export default function FirstTimeSetup() {
     const isStepValid = fieldsToValidate.length === 0 || await trigger(fieldsToValidate);
     
     if (isStepValid && currentStep < STEPS.length) {
+      // Check database connection before proceeding to next step
+      const isConnected = await checkDatabaseConnection();
+      if (!isConnected) {
+        return;
+      }
       setCurrentStep(currentStep + 1);
     } else if (!isStepValid) {
       // Show error toast if validation fails
@@ -178,8 +191,31 @@ export default function FirstTimeSetup() {
     }
   };
 
+  const checkDatabaseConnection = async () => {
+    try {
+      const response = await fetch('/api/database/health-check', { cache: 'no-store' });
+      const data = await response.json();
+      if (!data.connected) {
+        setConnectionError('Database connection lost');
+        return false;
+      }
+      return true;
+    } catch {
+      setConnectionError('Database connection lost');
+      return false;
+    }
+  };
+
   const onSubmit = async (data: SetupFormData) => {
     setIsLoading(true);
+    
+    // Check database connection before submitting
+    const isConnected = await checkDatabaseConnection();
+    if (!isConnected) {
+      setIsLoading(false);
+      return;
+    }
+    
     try {
       const result = await completeFirstTimeSetup(data as SetupData);
       
@@ -379,9 +415,14 @@ export default function FirstTimeSetup() {
                   id="googleAnalyticsId"
                   {...register("googleAnalyticsId", {
                     required: watchedValues.enableGoogleAnalytics ? "Google Analytics ID is required when analytics is enabled" : false,
-                    pattern: {
-                      value: /^G-[A-Z0-9]{10}$/,
-                      message: "Please enter a valid Google Analytics 4 Measurement ID (format: G-XXXXXXXXXX)"
+                    validate: (value) => {
+                      if (!watchedValues.enableGoogleAnalytics) return true;
+                      if (!value) return "Google Analytics ID is required when analytics is enabled";
+                      // GA4 Measurement ID format: G- followed by alphanumeric characters (typically 10 characters)
+                      if (!/^G-[A-Z0-9]{8,12}$/.test(value)) {
+                        return "Please enter a valid Google Analytics 4 Measurement ID (format: G-XXXXXXXXXX)";
+                      }
+                      return true;
                     }
                   })}
                   placeholder="G-XXXXXXXXXX"

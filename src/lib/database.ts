@@ -63,8 +63,17 @@ export async function closePool(): Promise<void> {
 // Database health check
 export async function checkConnection(): Promise<boolean> {
   try {
-    const result = await query('SELECT NOW()');
-    return result.rows.length > 0;
+    // Get a fresh pool to avoid cached connection issues
+    const pool = getPool();
+    
+    // Try to get a client and test the connection
+    const client = await pool.connect();
+    try {
+      const result = await client.query('SELECT NOW()');
+      return result.rows.length > 0;
+    } finally {
+      client.release();
+    }
   } catch (error) {
     console.error('Database connection check failed:', error);
     return false;
