@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      # Application Environment
+      - NODE_ENV=production
+      
+      # Database Configuration
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=keepsakes_user
+      - DB_PASS=keepsakes_password
+      - DB_NAME=keepsakes_db
+      
+      # Optional: Google Analytics (can be set during first-time setup)
+      - NEXT_PUBLIC_GA_MEASUREMENT_ID=${NEXT_PUBLIC_GA_MEASUREMENT_ID:-}
+      
+      # Optional: App Configuration
+      - APP_NAME=${APP_NAME:-Keepsakes}
+      - APP_URL=${APP_URL:-http://localhost:3000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/network-test"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=keepsakes_user
+      - POSTGRES_PASSWORD=keepsakes_password
+      - POSTGRES_DB=keepsakes_db
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keepsakes_user -d keepsakes_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+
