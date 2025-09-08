@@ -364,7 +364,7 @@ export default function AdminDashboard({
               </DialogHeader>
               <DialogDescription className="text-sm">
                 {selectedKeepsake.name && `By ${selectedKeepsake.name} | `}
-                {selectedKeepsake.createdAt && typeof selectedKeepsake.createdAt !== 'string' && selectedKeepsake.createdAt?.toDate?.() && new Date(selectedKeepsake.createdAt.toDate()).toLocaleString()}
+                {selectedKeepsake.createdAt && typeof selectedKeepsake.createdAt !== 'string' && selectedKeepsake.createdAt && new Date(selectedKeepsake.createdAt).toLocaleString()}
               </DialogDescription>
               <div className="flex-1 min-h-0 bg-muted/20 rounded-lg flex items-center justify-center relative overflow-hidden">
                 <KeepsakeCard
@@ -499,7 +499,7 @@ export default function AdminDashboard({
                       </div>
                     </TableCell>
                     <TableCell className="truncate">{keepsake.name || "Anonymous"}</TableCell>
-                    <TableCell>{keepsake.createdAt && keepsake.createdAt?.toDate?.() && new Date(keepsake.createdAt.toDate()).toLocaleDateString()}</TableCell>
+                    <TableCell>{keepsake.createdAt && new Date(keepsake.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
                         {keepsake.pinned && <Badge>Pinned</Badge>}

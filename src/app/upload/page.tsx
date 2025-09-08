@@ -14,8 +14,8 @@ import SharedLayout from "@/components/shared-layout";
 const serializeEvent = (event: Event) => {
   return {
     ...event,
-    createdAt: event.createdAt?.toDate?.()?.toISOString() || null,
-    restartAutoplay: event.restartAutoplay?.toDate?.()?.toISOString() || null,
+    createdAt: event.createdAt?.toISOString() || null,
+    restartAutoplay: event.restartAutoplay?.toISOString() || null,
   };
 };
 

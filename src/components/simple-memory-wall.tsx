@@ -343,7 +343,6 @@ export default function SimpleMemoryWall({ event: initialEvent }: { event: Seria
     return (
       <>
         <SharedLayout 
-          event={event} 
           showHeader={!isFullscreen}
           pageType="wall"
           eventSlug={event.slug}
@@ -426,7 +425,7 @@ export default function SimpleMemoryWall({ event: initialEvent }: { event: Seria
                 </DialogHeader>
                 <DialogDescription className="text-sm">
                   {selectedKeepsake.name && `By ${selectedKeepsake.name} | `}
-                  {selectedKeepsake.createdAt && typeof selectedKeepsake.createdAt !== 'string' && selectedKeepsake.createdAt?.toDate?.() && new Date(selectedKeepsake.createdAt.toDate()).toLocaleString()}
+                  {selectedKeepsake.createdAt && typeof selectedKeepsake.createdAt !== 'string' && selectedKeepsake.createdAt && new Date(selectedKeepsake.createdAt).toLocaleString()}
                 </DialogDescription>
                 <div className="flex-1 min-h-0 bg-muted/20 rounded-lg flex items-center justify-center relative overflow-hidden">
                   <KeepsakeCard
@@ -493,7 +492,6 @@ export default function SimpleMemoryWall({ event: initialEvent }: { event: Seria
   // Swipe view
   return (
     <SharedLayout 
-      event={event} 
       showHeader={!isFullscreen}
       pageType="wall"
       eventSlug={event.slug}
@@ -720,7 +718,7 @@ export default function SimpleMemoryWall({ event: initialEvent }: { event: Seria
               </DialogHeader>
               <DialogDescription className="text-sm">
                 {selectedKeepsake.name && `By ${selectedKeepsake.name} | `}
-                {selectedKeepsake.createdAt && typeof selectedKeepsake.createdAt !== 'string' && selectedKeepsake.createdAt?.toDate?.() && new Date(selectedKeepsake.createdAt.toDate()).toLocaleString()}
+                {selectedKeepsake.createdAt && typeof selectedKeepsake.createdAt !== 'string' && selectedKeepsake.createdAt && new Date(selectedKeepsake.createdAt).toLocaleString()}
               </DialogDescription>
               <div className="flex-1 min-h-0 bg-muted/20 rounded-lg flex items-center justify-center relative overflow-hidden">
                 <KeepsakeCard

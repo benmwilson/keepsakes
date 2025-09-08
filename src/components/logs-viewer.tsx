@@ -76,7 +76,7 @@ export default function LogsViewer({ event }: LogsViewerProps) {
     const csvContent = [
       ['Timestamp', 'Level', 'Category', 'Message', 'Event Slug', 'Data'],
       ...logs.map(log => [
-        formatTimestamp(log.createdAt),
+        formatTimestamp(log.created_at),
         log.level,
         log.category,
         log.message,
@@ -176,7 +176,7 @@ export default function LogsViewer({ event }: LogsViewerProps) {
                       </Badge>
                     </div>
                     <span className="text-sm text-muted-foreground">
-                      {formatTimestamp(log.createdAt)}
+                      {formatTimestamp(log.created_at)}
                     </span>
                   </div>
                   

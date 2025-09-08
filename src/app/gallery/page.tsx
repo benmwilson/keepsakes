@@ -47,7 +47,8 @@ function GalleryContent() {
         setEvent({ 
           ...eventData, 
           id: eventData.id,
-          createdAt: eventData.createdAt?.toISOString() || new Date().toISOString() 
+          createdAt: eventData.createdAt?.toISOString() || new Date().toISOString(),
+          restartAutoplay: eventData.restartAutoplay?.toISOString() || undefined
         });
       } catch (error) {
         console.error("Error fetching event:", error);
@@ -91,10 +92,9 @@ function GalleryContent() {
   }
 
   // Check if gallery is enabled
-  if (!event.galleryEnabled) {
+  if (!event.enabledKeepsakeTypes?.gallery) {
     return (
       <SharedLayout 
-        event={event} 
         showHeader={true}
         pageType="gallery"
         eventSlug={event.slug}
@@ -127,7 +127,6 @@ function GalleryContent() {
   return (
     <>
       <SharedLayout 
-        event={event} 
         showHeader={true}
         pageType="gallery"
         eventSlug={event.slug}
@@ -193,7 +192,7 @@ function GalleryContent() {
               </DialogHeader>
               <DialogDescription className="text-sm">
                 {selectedKeepsake.name && `By ${selectedKeepsake.name} | `}
-                {selectedKeepsake.createdAt && typeof selectedKeepsake.createdAt !== 'string' && selectedKeepsake.createdAt?.toDate?.() && new Date(selectedKeepsake.createdAt.toDate()).toLocaleString()}
+                {selectedKeepsake.createdAt && typeof selectedKeepsake.createdAt !== 'string' && selectedKeepsake.createdAt && new Date(selectedKeepsake.createdAt).toLocaleString()}
               </DialogDescription>
               <div className="flex-1 min-h-0 bg-muted/20 rounded-lg flex items-center justify-center relative overflow-hidden">
                 <KeepsakeCard
