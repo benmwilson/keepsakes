@@ -1,9 +1,9 @@
 ---
 name: Feature Request
 about: Suggest a new feature or improvement for Keepsakes
-title: '[FEATURE] '
+title: 'Feature: '
 labels: 
-  - enhancement
+  - feature
 assignees: ''
 
 ---
