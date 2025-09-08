@@ -64,6 +64,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import EventSettingsForm from "./event-settings-form";
 import KeepsakeTypeSettings from "./keepsake-type-settings";
+import ResetToDefaultButton from "./reset-to-default-button";
 import LogsViewer from "./logs-viewer";
 import { toggleEventPause, skipNext, skipPrev, restartAutoplay } from "@/actions/events";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./ui/carousel";
@@ -622,6 +623,27 @@ export default function AdminDashboard({
         <TabsContent value="settings" className="mt-4 space-y-6">
           <EventSettingsForm event={event} onDirtyChange={handleDirtyChange} />
           <KeepsakeTypeSettings event={event} onDirtyChange={handleDirtyChange} />
+          
+          {/* Danger Zone */}
+          <div className="border border-destructive/20 rounded-lg p-6 bg-destructive/5">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold text-destructive">Danger Zone</h3>
+                <p className="text-sm text-muted-foreground">
+                  Irreversible and destructive actions. Use with extreme caution.
+                </p>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium">Reset to Default</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Wipe all data and return to first-time setup. This will delete everything.
+                  </p>
+                </div>
+                <ResetToDefaultButton />
+              </div>
+            </div>
+          </div>
         </TabsContent>
         <TabsContent value="logs" className="mt-4">
           <LogsViewer event={event} />
