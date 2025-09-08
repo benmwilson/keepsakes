@@ -1,5 +1,6 @@
-import { ref, getDownloadURL, getMetadata } from "firebase/storage";
-import { storage } from "./firebase";
+// Firebase imports commented out - transitioning to Postgres
+// import { ref, getDownloadURL, getMetadata } from "firebase/storage";
+// import { storage } from "./firebase";
 
 // Video optimization utilities for Firebase Storage
 

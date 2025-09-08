@@ -2,16 +2,17 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import {
-  collection,
-  query,
-  onSnapshot,
-  doc,
-  where,
-  updateDoc,
-} from "firebase/firestore";
+// Firebase imports commented out - transitioning to Postgres
+// import {
+//   collection,
+//   query,
+//   onSnapshot,
+//   doc,
+//   where,
+//   updateDoc,
+// } from "firebase/firestore";
 import Link from "next/link";
-import { db } from "@/lib/firebase";
+// import { db } from "@/lib/firebase";
 import type { Keepsake, Event } from "@/lib/types";
 import useEmblaCarousel, { UseEmblaCarouselType } from "embla-carousel-react";
 import Autoplay, { AutoplayType } from "embla-carousel-autoplay";
@@ -370,23 +371,23 @@ export default function MemoryWall({ event: initialEvent }: { event: Serializabl
 
 
 
-  // Effect for handling event document updates (pause, skip, etc.)
-  useEffect(() => {
-    if (!initialEvent.id) return;
-    const eventRef = doc(db, "events", initialEvent.id);
-    const unsubscribeEvent = onSnapshot(eventRef, (docSnap) => {
-      if (!docSnap.exists()) return;
-      const eventData = docSnap.data() as Event;
-      setEvent({ 
-        ...eventData, 
-        id: docSnap.id,
-        createdAt: (eventData.createdAt as any)?.toDate?.()?.toISOString() || null,
-        restartAutoplay: eventData.restartAutoplay?.toDate?.()?.toISOString() || null,
-      });
-    });
+  // Effect for handling event document updates (pause, skip, etc.) - Firebase code commented out
+  // useEffect(() => {
+  //   if (!initialEvent.id) return;
+  //   const eventRef = doc(db, "events", initialEvent.id);
+  //   const unsubscribeEvent = onSnapshot(eventRef, (docSnap: any) => {
+  //     if (!docSnap.exists()) return;
+  //     const eventData = docSnap.data() as Event;
+  //     setEvent({ 
+  //       ...eventData, 
+  //       id: docSnap.id,
+  //       createdAt: eventData.createdAt?.toISOString() || null,
+  //       restartAutoplay: eventData.restartAutoplay?.toISOString() || null,
+  //     });
+  //   });
 
-    return () => unsubscribeEvent();
-  }, [initialEvent.id]);
+  //   return () => unsubscribeEvent();
+  // }, [initialEvent.id]);
 
   // Effect for handling commands from the admin dashboard
   useEffect(() => {
@@ -619,48 +620,48 @@ export default function MemoryWall({ event: initialEvent }: { event: Serializabl
 
 
 
-  // Effect for handling keepsakes collection updates
-  useEffect(() => {
-    if (!initialEvent.id) return;
-    const keepsakesQuery = query(
-      collection(db, "keepsakes"),
-      where("eventId", "==", initialEvent.id)
-    );
-    const unsubscribeKeepsakes = onSnapshot(keepsakesQuery, (querySnapshot) => {
-      const keepsakesData: Keepsake[] = [];
-      querySnapshot.forEach((doc) => {
-          keepsakesData.push({ id: doc.id, ...doc.data() } as Keepsake);
-      });
+  // Effect for handling keepsakes collection updates - Firebase code commented out
+  // useEffect(() => {
+  //   if (!initialEvent.id) return;
+  //   const keepsakesQuery = query(
+  //     collection(db, "keepsakes"),
+  //     where("eventId", "==", initialEvent.id)
+  //   );
+  //   const unsubscribeKeepsakes = onSnapshot(keepsakesQuery, (querySnapshot: any) => {
+  //     const keepsakesData: Keepsake[] = [];
+  //     querySnapshot.forEach((doc: any) => {
+  //         keepsakesData.push({ id: doc.id, ...doc.data() } as Keepsake);
+  //     });
       
-      keepsakesData.sort((a, b) => {
-        if (a.pinned && !b.pinned) return -1;
-        if (!a.pinned && b.pinned) return 1;
-        const dateA = a.createdAt?.toDate?.()?.getTime() || 0;
-        const dateB = b.createdAt?.toDate?.()?.getTime() || 0;
-        return dateB - dateA;
-      });
+  //     keepsakesData.sort((a, b) => {
+  //       if (a.pinned && !b.pinned) return -1;
+  //       if (!a.pinned && b.pinned) return 1;
+  //       const dateA = a.createdAt?.getTime() || 0;
+  //       const dateB = b.createdAt?.getTime() || 0;
+  //       return dateB - dateA;
+  //     });
 
-      // Clear all gallery carousel refs when keepsakes update
-      galleryCarouselRefs.current = new Map();
-      // Reset gallery indices
-      setGalleryIndices(new Map());
+  //     // Clear all gallery carousel refs when keepsakes update
+  //     galleryCarouselRefs.current = new Map();
+  //     // Reset gallery indices
+  //     setGalleryIndices(new Map());
 
-      const currentIndex = emblaApi?.selectedScrollSnap() || 0;
-      setKeepsakes(keepsakesData);
+  //     const currentIndex = emblaApi?.selectedScrollSnap() || 0;
+  //     setKeepsakes(keepsakesData);
       
-      // Give time for the DOM to update before reinitializing
-      setTimeout(() => {
-        if (emblaApi && keepsakesData.length > 0) {
-          console.log('Reinitializing carousel after keepsakes update');
-          emblaApi.reInit();
-          if (currentIndex < keepsakesData.length) {
-            emblaApi.scrollTo(currentIndex, true);
-          }
-        }
-      }, 0);
-    });
-    return () => unsubscribeKeepsakes();
-  }, [initialEvent.id, emblaApi]);
+  //     // Give time for the DOM to update before reinitializing
+  //     setTimeout(() => {
+  //       if (emblaApi && keepsakesData.length > 0) {
+  //         console.log('Reinitializing carousel after keepsakes update');
+  //         emblaApi.reInit();
+  //         if (currentIndex < keepsakesData.length) {
+  //           emblaApi.scrollTo(currentIndex, true);
+  //         }
+  //       }
+  //     }, 0);
+  //   });
+  //   return () => unsubscribeKeepsakes();
+  // }, [initialEvent.id, emblaApi]);
   
   // Effect to re-initialize carousel when slides change
   useEffect(() => {
@@ -849,7 +850,7 @@ export default function MemoryWall({ event: initialEvent }: { event: Serializabl
               </DialogHeader>
                <DialogDescription className="text-sm">
                   {selectedKeepsake.name && `By ${selectedKeepsake.name} | `} 
-                  {selectedKeepsake.createdAt && typeof selectedKeepsake.createdAt !== 'string' && selectedKeepsake.createdAt?.toDate?.() && new Date(selectedKeepsake.createdAt.toDate()).toLocaleString()} </DialogDescription>
+                  {selectedKeepsake.createdAt && typeof selectedKeepsake.createdAt !== 'string' && selectedKeepsake.createdAt && new Date(selectedKeepsake.createdAt).toLocaleString()} </DialogDescription>
                <div className="flex-1 min-h-0 bg-muted/20 rounded-lg flex items-center justify-center relative overflow-hidden">
                 <KeepsakeCard
                   keepsake={selectedKeepsake}

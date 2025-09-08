@@ -108,8 +108,8 @@ export async function updateEvent(eventId: string, currentSlug: string, data: Pa
         }
 
         // Build dynamic update query
-        const updateFields = [];
-        const values = [];
+        const updateFields: string[] = [];
+        const values: any[] = [];
         let paramIndex = 1;
 
         Object.entries(data).forEach(([key, value]) => {

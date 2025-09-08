@@ -1,14 +1,15 @@
 
 "use client";
-import { listAll, getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+// Firebase imports commented out - transitioning to Postgres
+// import { listAll, getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Image from "next/image";
-import { storage } from "@/lib/firebase";
-import { Party } from "@/lib/types";
-import { updateParty } from "@/actions/parties";
+// import { storage } from "@/lib/firebase";
+// import { Party } from "@/lib/types";
+// import { updateParty } from "@/actions/parties";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -50,7 +51,7 @@ export default function PartySettingsForm({
       try {
         const listRef = ref(storage, `keepsakes/${party.id}`);
         const res = await listAll(listRef);
-        const urls = await Promise.all(res.items.map((itemRef) => getDownloadURL(itemRef)));
+        const urls = await Promise.all(res.items.map((itemRef: any) => getDownloadURL(itemRef)));
         setExistingImages(urls);
       } catch (e) {
           console.error("Could not list existing images, this may be due to storage rules.", e)
@@ -110,11 +111,11 @@ export default function PartySettingsForm({
 
         uploadTask.on(
           'state_changed',
-          (snapshot) => {
+          (snapshot: any) => {
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
             setUploadProgress(progress);
           },
-          (error) => {
+          (error: any) => {
             console.error("Upload failed:", error);
             toast({ title: "Upload Failed", description: `Could not upload the hero image. Check CORS settings. Error: ${error.message}`, variant: "destructive" });
             setUploadProgress(null);

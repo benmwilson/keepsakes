@@ -162,44 +162,9 @@ export default function UploadForm({ event }: { event: SerializableEvent }) {
 
   const handleFileUpload = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
-      setUploadLog(`Starting upload for ${file.name}...`);
-      
-      // Optimize file name and path for better caching
-      const timestamp = Date.now();
-      const optimizedName = `${timestamp}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-      const storageRef = ref(storage, `keepsakes/${event.id}/${optimizedName}`);
-      
-      // Set metadata for better caching and CDN optimization
-      const metadata = {
-        cacheControl: 'public, max-age=31536000', // 1 year cache
-        contentType: file.type,
-        customMetadata: {
-          originalName: file.name,
-          uploadedAt: timestamp.toString(),
-          eventId: event.id
-        }
-      };
-      
-      const uploadTask = uploadBytesResumable(storageRef, file, metadata);
-
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setUploadProgress(progress);
-          setUploadLog(`Upload is ${progress.toFixed(2)}% done`);
-        },
-        (error) => {
-          console.error("Upload failed:", error);
-          setUploadLog(`Upload failed: ${error.message}. Check storage rules and CORS settings.`);
-          reject(error);
-        },
-        async () => {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          setUploadLog(`Upload complete for ${file.name}!`);
-          resolve(downloadURL);
-        }
-      );
+      setUploadLog(`File upload not implemented - transitioning from Firebase to Postgres...`);
+      // TODO: Implement file upload with Postgres/alternative storage
+      reject(new Error("File upload not yet implemented - transitioning from Firebase to Postgres"));
     });
   };
 

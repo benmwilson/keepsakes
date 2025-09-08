@@ -52,7 +52,7 @@ export async function getAllKeepsakesByEventId(eventId: string): Promise<Keepsak
       [eventId]
     );
     
-    return result.rows.map(row => ({
+    return result.rows.map((row: any) => ({
       id: row.id,
       eventId: row.event_id,
       type: row.type,
