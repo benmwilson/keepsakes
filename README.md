@@ -12,6 +12,11 @@
   </p>
 </p>
 
+<!-- STATUS NOTICE -->
+<div align="center">
+  🚧 **Work in Progress** — This project is currently under development.
+</div>
+
 <!-- PROJECT LINKS -->
 <div align="center">
 
@@ -20,6 +25,7 @@
 [![Roadmap](https://img.shields.io/badge/🗺️_Roadmap-View_Plans-green?style=for-the-badge&logo=github)](https://github.com/users/benmwilson/projects/3)
 
 </div>
+
 
 <!-- TABLE OF CONTENTS -->
 <details open="open">
