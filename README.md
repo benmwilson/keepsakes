@@ -1,6 +1,6 @@
 <!-- PROJECT LOGO -->
 <br />
-<p align="center">
+<div align="center">
   <a href="https://github.com/benmwilson/keepsakes">
     <img src="public/favicon.png" alt="Logo" width="120" height="120">
   </a>
@@ -10,12 +10,13 @@
   <p align="center">
     A modern, interactive memory wall app for sharing photos, stories, and keepsakes at family events.
   </p>
-</p>
 
-<!-- STATUS NOTICE -->
-<div align="center">
-  🚧 **Work in Progress** — This project is currently under development.
+  <!-- STATUS NOTICE -->
+  <p align="center">
+    🚧 **Work in Progress** — This project is currently under development.
+  </p>
 </div>
+
 
 <!-- PROJECT LINKS -->
 <div align="center">
